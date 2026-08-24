@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Swipeable / Click-to-Front Stacked Cards — CodeFronts</title>
+
+<style>
+.scd-09,
+.scd-09 *,
+.scd-09 *::before,
+.scd-09 *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.scd-09 {
+  font-family: 'Segoe UI',system-ui,sans-serif;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  padding: 50px 20px;
+  background: #101219;
+}
+
+.scd-09__deck {
+  position: relative;
+  width: min(320px,86vw);
+  height: 220px;
+}
+
+.scd-09__card {
+  position: absolute;
+  inset: 0;
+  text-align: left;
+  border: none;
+  cursor: pointer;
+  padding: 24px;
+  border-radius: 20px;
+  color: #fff;
+  background: var(--c);
+  box-shadow: 0 24px 46px -26px rgba(0,0,0,.8);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transform: translateY(calc(var(--depth,0) * 16px)) scale(calc(1 - var(--depth,0) * .05));
+  z-index: calc(10 - var(--depth,0));
+  transition: transform .5s cubic-bezier(.3,.9,.3,1),opacity .5s;
+}
+
+.scd-09__card.scd-09__sending {
+  transform: translateX(130%) rotate(12deg);
+  opacity: 0;
+  transition: transform .45s ease-in,opacity .45s;
+}
+
+.scd-09__card span {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  opacity: .85;
+}
+
+.scd-09__card b {
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.scd-09__card i {
+  font-style: normal;
+  font-size: 12px;
+  opacity: .85;
+  margin-top: auto;
+}
+
+.scd-09__card:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.scd-09__cyc {
+  background: #232838;
+  color: #fff;
+  border: 1px solid #333a4e;
+  padding: 11px 22px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.scd-09__cyc:hover {
+  background: #2e3446;
+}
+
+.scd-09__cyc:focus-visible {
+  outline: 3px solid oklch(0.66 0.15 250);
+  outline-offset: 2px;
+}
+
+.scd-09__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scd-09__card {
+    transition: transform .2s,opacity .2s;
+  }
+}
+</style>
+</head>
+<body>
+<section class="scd-09" aria-label="Click-to-front card deck">
+  <div class="scd-09__deck" id="scd-09-deck">
+    <button class="scd-09__card" style="--c:oklch(0.63 0.17 20)"><span>Ticket #4821</span><b>Payment retry loop</b><i>High · Billing</i></button>
+    <button class="scd-09__card" style="--c:oklch(0.66 0.15 150)"><span>Ticket #4822</span><b>Slow search on mobile</b><i>Medium · Web</i></button>
+    <button class="scd-09__card" style="--c:oklch(0.64 0.16 250)"><span>Ticket #4823</span><b>Export to CSV missing</b><i>Low · Reports</i></button>
+    <button class="scd-09__card" style="--c:oklch(0.64 0.16 300)"><span>Ticket #4824</span><b>SSO redirect fails</b><i>High · Auth</i></button>
+  </div>
+  <div class="scd-09__foot"><button class="scd-09__cyc" id="scd-09-next">Next ticket ↻</button><p id="scd-09-live" aria-live="polite" class="scd-09__sr"></p></div>
+</section>
+<script>(() => {
+  const root = document.querySelector('.scd-09');
+  const deck = root.querySelector('#scd-09-deck');
+  const live = root.querySelector('#scd-09-live');
+  const paint = () => [...deck.children].forEach((c,i) => c.style.setProperty('--depth', i));
+  function cycle(){
+    const front = deck.firstElementChild; if(!front) return;
+    front.classList.add('scd-09__sending');
+    front.addEventListener('transitionend', () => {
+      front.classList.remove('scd-09__sending');
+      deck.appendChild(front); paint();
+      const nf = deck.firstElementChild.querySelector('b');
+      if(nf) live.textContent = 'Now showing ' + nf.textContent;
+    }, {once:true});
+  }
+  deck.addEventListener('click', e => { if(e.target.closest('.scd-09__card') === deck.firstElementChild) cycle(); });
+  root.querySelector('#scd-09-next').addEventListener('click', cycle);
+  paint();
+})();</script>
+</body>
+</html>
