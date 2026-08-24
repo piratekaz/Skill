@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kaztral — Skills Studies</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#08090b;color:#f2f2ef;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body{overflow:hidden}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.13;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:42px 42px}
+.page{height:100svh;display:grid;grid-template-rows:auto 1fr auto;padding:28px 34px}
+.top{display:flex;align-items:center;justify-content:space-between;position:relative;z-index:5}
+.brand{font-weight:800;letter-spacing:-.04em;font-size:20px}
+.status{font:11px/1 monospace;color:#85888d;letter-spacing:.15em;text-transform:uppercase}
+.stage{position:relative;display:grid;place-items:center;min-height:0;perspective:1800px}
+.stack{position:relative;width:min(72vw,780px);height:min(68vh,570px);transform-style:preserve-3d;touch-action:none;cursor:grab;-webkit-user-select:none}
+.stack.dragging{cursor:grabbing}
+.card{--accent:#d7ff5f;position:absolute;transition:transform 360ms cubic-bezier(.2,.8,.2,1),opacity 260ms ease;inset:0;border:1px solid rgba(255,255,255,.14);border-radius:4px;overflow:hidden;background:#111316;transform-style:preserve-3d;will-change:transform,opacity;box-shadow:0 30px 80px rgba(0,0,0,.45);user-select:none}
+.card:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 30%,transparent 0 22%,rgba(0,0,0,.2) 75%)}
+.card .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:32px 32px;mask-image:linear-gradient(to bottom,black,transparent)}
+.content{position:absolute;inset:0;padding:clamp(24px,5vw,58px);display:flex;flex-direction:column;justify-content:space-between;z-index:2;opacity:1;visibility:visible}
+.card.is-active .content{opacity:1!important;visibility:visible!important;display:flex!important}
+.card.is-background .content{opacity:0!important;visibility:hidden!important}
+.card.is-background{border-color:rgba(255,255,255,.11)!important;background:#101216!important}
+.card.is-background:after{opacity:.55}
+.card.is-active .visual{opacity:.78!important}
+.card.is-background .visual{opacity:.16!important}
+.index{font:12px monospace;color:#999;letter-spacing:.12em}
+.skill{font-size:clamp(54px,10vw,126px);line-height:.82;letter-spacing:-.075em;font-weight:850;max-width:85%;color:#f5f5f1}
+.desc{font:12px monospace;color:#a5a7aa;text-transform:uppercase;letter-spacing:.12em}
+.meta{display:flex;justify-content:space-between;align-items:end;font:11px monospace;color:#85888d}
+.visual{position:absolute;right:-8%;top:17%;width:58%;height:65%;opacity:.78;transform:translateZ(35px) rotate(-10deg);pointer-events:none}
+.dots{position:absolute;inset:0;background-image:radial-gradient(circle,var(--accent) 1.2px,transparent 1.4px);background-size:10px 10px;mask-image:radial-gradient(circle at 50% 50%,black 0 32%,transparent 70%);animation:drift 8s linear infinite}
+.ring{position:absolute;width:65%;aspect-ratio:1;border:1px solid var(--accent);border-radius:50%;left:18%;top:17%;box-shadow:0 0 35px color-mix(in srgb,var(--accent),transparent 75%),inset 0 0 35px color-mix(in srgb,var(--accent),transparent 88%);animation:spin 14s linear infinite}
+.ring:before,.ring:after{content:"";position:absolute;inset:12%;border:1px dashed color-mix(in srgb,var(--accent),transparent 35%);border-radius:50%}
+.ring:after{inset:28%;border-style:solid}
+.cross{position:absolute;left:50%;top:50%;width:100%;height:1px;background:var(--accent);transform:rotate(28deg);box-shadow:0 0 20px var(--accent)}
+.cross:after{content:"";position:absolute;left:50%;top:-50px;width:1px;height:100px;background:var(--accent);transform:rotate(-28deg)}
+footer{display:flex;justify-content:space-between;align-items:center;position:relative;z-index:5}
+.hint{font:11px monospace;color:#666;letter-spacing:.08em}
+.nav{display:flex;gap:7px}
+.nav button{width:42px;height:34px;border:1px solid #303236;background:#101114;color:#ddd;cursor:pointer}
+.nav button:hover{border-color:#777}
+.counter{font:12px monospace;color:#888;margin-right:16px}
+@keyframes spin{to{transform:rotate(360deg)}} @keyframes drift{to{background-position:70px 30px}}
+@media(max-width:700px){
+.page{padding:20px 16px}
+.stage{margin:0;min-height:0}
+.stack{
+  width:min(88vw,620px);
+  height:min(64vh,570px);
+  max-height:570px;
+}
+.card{border-radius:5px}
+.content{padding:28px 26px}
+.skill{
+  font-size:clamp(46px,13vw,82px);
+  max-width:92%;
+  line-height:.84;
+}
+.desc{
+  font-size:10px;
+  line-height:1.5;
+  max-width:90%;
+}
+.meta{font-size:10px}
+.visual{width:68%;right:-14%;top:22%;opacity:.78}
+.hint{display:none}
+.nav button{width:48px;height:42px}
+.counter{margin-right:12px}
+}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="top"><div class="brand">KAZTRAL<span style="color:#777">.</span></div><div class="status">SKILLS / STUDIES</div></header>
+<main class="stage">
+<div class="stack" id="stack"></div>
+</main>
+<footer>
+<div class="hint">DRAG · ← → · SWIPE</div>
+<div style="display:flex;align-items:center"><span class="counter" id="counter">01 / 12</span><div class="nav"><button id="prev" aria-label="Previous">←</button><button id="next" aria-label="Next">→</button></div></div>
+</footer>
+</div>
+<script>
+const skills=[
+["PYTHON","Backend · Automation · Tools","#d7ff5f"],
+["JAVASCRIPT","Web · Interaction · Applications","#7cf7ff"],
+["HTML","Structure · Semantic Web · UI","#ff9d6c"],
+["CSS","Design · Motion · Responsive UI","#c49cff"],
+["BASH","Linux · CLI · Automation","#a9ff68"],
+["GIT","Version Control · Collaboration","#ff6b7a"],
+["LINUX","Systems · Servers · Development","#b5b8ff"],
+["FLASK","Python · Web · APIs","#d9d9d0"],
+["SQL","Data · Queries · Applications","#63d6ff"],
+["APIs","Integration · Services · Automation","#ffcf5c"],
+["DISCORD BOTS","Bots · APIs · Automation","#9bffbd"],
+["AUTOMATION","Systems · Workflows · Tools","#ff8df4"]
+];
+
+const stack=document.getElementById("stack");
+const counter=document.getElementById("counter");
+const prev=document.getElementById("prev");
+const next=document.getElementById("next");
+
+let active=0;
+let cards=[];
+let pointerDown=false;
+let startX=0;
+let dragX=0;
+let moved=false;
+let pointerId=null;
+
+skills.forEach((s,i)=>{
+  const c=document.createElement("article");
+  c.className="card";
+  c.style.setProperty("--accent",s[2]);
+  c.innerHTML=`
+    <div class="grid"></div>
+    <div class="visual">
+      <div class="dots"></div>
+      <div class="ring"></div>
+      <div class="cross"></div>
+    </div>
+    <div class="content">
+      <div class="index">${String(i+1).padStart(2,"0")} / ${skills.length}</div>
+      <div>
+        <div class="skill">${s[0]}</div>
+        <div class="desc">${s[1]}</div>
+      </div>
+      <div class="meta">
+        <span>TECHNICAL STUDY</span>
+        <span>KZ_${String(i+1).padStart(2,"0")}</span>
+      </div>
+    </div>`;
+  stack.appendChild(c);
+  cards.push(c);
+});
+
+function relativeIndex(i){
+  let d=i-active;
+  const total=skills.length;
+
+  // Always choose the shortest circular distance.
+  if(d > total/2) d-=total;
+  if(d < -total/2) d+=total;
+
+  return d;
+}
+
+function render(){
+  const mobile = window.matchMedia("(max-width: 700px)").matches;
+
+  cards.forEach((card,i)=>{
+    const d=relativeIndex(i);
+    const abs=Math.abs(d);
+    const activeCard=d===0;
+
+    card.classList.toggle("is-active",activeCard);
+    card.classList.toggle("is-background",!activeCard);
+
+    if(abs>3){
+      card.style.opacity="0";
+      card.style.visibility="hidden";
+      card.style.pointerEvents="none";
+      return;
+    }
+
+    card.style.visibility="visible";
+    card.style.pointerEvents=activeCard?"auto":"none";
+
+    /*
+      Physical stack:
+      active = front
+      +1     = card immediately behind
+      +2     = deeper card
+      +3     = deepest card
+
+      Keep the cards almost perfectly aligned, with only a small offset,
+      so it reads as a real pile rather than a horizontal carousel.
+    */
+    let x, y, z, scale, rotate;
+
+    if(mobile){
+      x = d * 5;
+      y = abs * 7;
+      z = -abs * 55;
+      scale = 1 - abs * .018;
+      rotate = d * .45;
+    }else{
+      x = d * 8;
+      y = abs * 9;
+      z = -abs * 70;
+      scale = 1 - abs * .022;
+      rotate = d * .55;
+    }
+
+    const activeDrag=activeCard
+      ? dragX * (mobile ? .72 : .55)
+      : 0;
+
+    card.style.zIndex=200-abs;
+
+    // Background cards are visible, but intentionally subdued.
+    card.style.opacity=activeCard
+      ? "1"
+      : (abs===1 ? ".72" : abs===2 ? ".46" : ".22");
+
+    card.style.transform=
+      `translate3d(calc(${x}px + ${activeDrag}px), ${y}px, ${z}px)
+       rotateY(${rotate}deg)
+       rotateZ(${d*.08}deg)
+       scale(${scale})`;
+  });
+
+  counter.textContent=
+    `${String(active+1).padStart(2,"0")} / ${String(skills.length).padStart(2,"0")}`;
+}
+function go(direction){
+  active=(active+direction+skills.length)%skills.length;
+  dragX=0;
+  moved=false;
+
+  // Clear any pointer tilt left on the previous active card.
+  cards.forEach(card => card.style.transition = "transform 360ms cubic-bezier(.2,.8,.2,1)");
+  render();
+
+  window.setTimeout(()=>{
+    cards.forEach(card => card.style.transition = "");
+  }, 380);
+}
+
+prev.addEventListener("click",()=>go(-1));
+next.addEventListener("click",()=>go(1));
+
+window.addEventListener("keydown",e=>{
+  if(e.key==="ArrowRight"){
+    e.preventDefault();
+    go(1);
+  }else if(e.key==="ArrowLeft"){
+    e.preventDefault();
+    go(-1);
+  }
+});
+
+function finishPointer(e){
+  if(!pointerDown) return;
+
+  pointerDown=false;
+  stack.classList.remove("dragging");
+
+  if(pointerId!==null){
+    try{ stack.releasePointerCapture(pointerId); }catch(_){}
+  }
+
+  pointerId=null;
+
+  const threshold=Math.max(45,stack.clientWidth*.08);
+
+  if(Math.abs(dragX)>threshold){
+    go(dragX<0?1:-1);
+  }else{
+    dragX=0;
+    render();
+  }
+}
+
+stack.addEventListener("pointerdown",e=>{
+  if(e.pointerType==="mouse" && e.button!==0) return;
+
+  pointerDown=true;
+  moved=false;
+  pointerId=e.pointerId;
+  startX=e.clientX;
+  dragX=0;
+
+  stack.classList.add("dragging");
+  stack.setPointerCapture(e.pointerId);
+});
+
+stack.addEventListener("pointermove",e=>{
+  if(!pointerDown || e.pointerId!==pointerId) return;
+
+  dragX=e.clientX-startX;
+
+  if(Math.abs(dragX)>6) moved=true;
+
+  render();
+});
+
+stack.addEventListener("pointerup",finishPointer);
+stack.addEventListener("pointercancel",finishPointer);
+
+stack.addEventListener("click",e=>{
+  // Prevent accidental activation after dragging.
+  if(moved){
+    e.preventDefault();
+    e.stopPropagation();
+  }
+});
+
+stack.addEventListener("pointermove",e=>{
+  if(pointerDown) return;
+
+  const rect=stack.getBoundingClientRect();
+  const px=(e.clientX-rect.left)/rect.width-.5;
+  const py=(e.clientY-rect.top)/rect.height-.5;
+
+  const card=cards[active];
+
+  card.style.transform=
+    `translate3d(0,0,0)
+     rotateY(${px*4}deg)
+     rotateX(${-py*3}deg)
+     scale(1)`;
+});
+
+stack.addEventListener("pointerleave",()=>{
+  if(!pointerDown) render();
+});
+
+// Prevent browser page gestures while interacting with the stack.
+stack.addEventListener("touchstart",e=>e.preventDefault(),{passive:false});
+stack.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});
+
+render();
+
+window.addEventListener("resize",()=>requestAnimationFrame(render));
+window.addEventListener("orientationchange",()=>setTimeout(render,120));
+document.addEventListener("visibilitychange",()=>{
+  if(!document.hidden) requestAnimationFrame(render);
+});
+window.addEventListener("pageshow",()=>requestAnimationFrame(render));
+</script>
+</body>
+</html>
